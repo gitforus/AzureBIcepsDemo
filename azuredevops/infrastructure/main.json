@@ -1,0 +1,888 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.14.46.61228",
+      "templateHash": "2198257055259755481"
+    }
+  },
+  "parameters": {
+    "resourceGroupName": {
+      "type": "string",
+      "metadata": {
+        "description": "The resource group to deploy the solution components"
+      }
+    },
+    "tags": {
+      "type": "object",
+      "defaultValue": {
+        "application": "zuva",
+        "environment": "dev",
+        "owner": "Sanjay"
+      },
+      "metadata": {
+        "description": "Tags for all resource(s)."
+      }
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-10-01",
+      "name": "storageDeployment",
+      "resourceGroup": "[parameters('resourceGroupName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "storageAccountName": {
+            "value": "testStorgageAccount"
+          },
+          "location": {
+            "value": "[reference(subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('resourceGroupName')), '2021-04-01', 'full').location]"
+          },
+          "tags": {
+            "value": "[parameters('tags')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.14.46.61228",
+              "templateHash": "5089590088419356045"
+            }
+          },
+          "parameters": {
+            "storageAccountName": {
+              "type": "string"
+            },
+            "location": {
+              "type": "string",
+              "defaultValue": "[resourceGroup().location]"
+            },
+            "tags": {
+              "type": "object"
+            },
+            "userContainerName": {
+              "type": "string",
+              "defaultValue": "users",
+              "metadata": {
+                "description": "Specifies the name of the blob container."
+              }
+            },
+            "trainerContainerName": {
+              "type": "string",
+              "defaultValue": "trainer"
+            },
+            "adminContainerName": {
+              "type": "string",
+              "defaultValue": "admin"
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Storage/storageAccounts",
+              "apiVersion": "2021-09-01",
+              "name": "[parameters('storageAccountName')]",
+              "location": "[parameters('location')]",
+              "sku": {
+                "name": "Standard_LRS"
+              },
+              "properties": {
+                "accessTier": "Hot"
+              },
+              "kind": "StorageV2",
+              "tags": "[parameters('tags')]"
+            },
+            {
+              "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+              "apiVersion": "2021-09-01",
+              "name": "[format('{0}/default/{1}', parameters('storageAccountName'), parameters('userContainerName'))]",
+              "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+              "apiVersion": "2021-09-01",
+              "name": "[format('{0}/default/{1}', parameters('storageAccountName'), parameters('trainerContainerName'))]",
+              "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+              "apiVersion": "2021-09-01",
+              "name": "[format('{0}/default/{1}', parameters('storageAccountName'), parameters('adminContainerName'))]",
+              "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-10-01",
+      "name": "vnet1",
+      "resourceGroup": "[parameters('resourceGroupName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[reference(subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('resourceGroupName')), '2021-04-01', 'full').location]"
+          },
+          "tags": {
+            "value": "[parameters('tags')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.14.46.61228",
+              "templateHash": "2430907991924462720"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "defaultValue": "[resourceGroup().location]"
+            },
+            "tags": {
+              "type": "object"
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Network/virtualNetworks",
+              "apiVersion": "2022-01-01",
+              "name": "vnet",
+              "tags": "[parameters('tags')]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "addressSpace": {
+                  "addressPrefixes": [
+                    "10.77.0.0/16"
+                  ]
+                },
+                "subnets": [
+                  {
+                    "name": "Subnet-1",
+                    "properties": {
+                      "addressPrefix": "10.77.0.0/24"
+                    }
+                  },
+                  {
+                    "name": "Subnet-2",
+                    "properties": {
+                      "addressPrefix": "10.77.1.0/24"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-10-01",
+      "name": "linuxVM",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[reference(subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('resourceGroupName')), '2021-04-01', 'full').location]"
+          },
+          "adminPassword": {
+            "value": "Test@123"
+          },
+          "adminUserName": {
+            "value": "TestAdmin"
+          },
+          "tags": {
+            "value": "[parameters('tags')]"
+          },
+          "computerName": {
+            "value": "linuxServer"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.14.46.61228",
+              "templateHash": "3152858643468039262"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "defaultValue": "[resourceGroup().location]"
+            },
+            "adminUserName": {
+              "type": "string"
+            },
+            "computerName": {
+              "type": "string"
+            },
+            "adminPassword": {
+              "type": "securestring"
+            },
+            "tags": {
+              "type": "object"
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Compute/virtualMachines",
+              "apiVersion": "2020-12-01",
+              "name": "linuxServer",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "hardwareProfile": {
+                  "vmSize": "Standard_A2_v2"
+                },
+                "osProfile": {
+                  "computerName": "[parameters('computerName')]",
+                  "adminUsername": "[parameters('adminUserName')]",
+                  "adminPassword": "[parameters('adminPassword')]"
+                },
+                "storageProfile": {
+                  "imageReference": {
+                    "publisher": "Canonical",
+                    "offer": "UbuntuServer",
+                    "sku": "16.04-LTS",
+                    "version": "latest"
+                  },
+                  "osDisk": {
+                    "name": "name",
+                    "caching": "ReadWrite",
+                    "createOption": "FromImage"
+                  }
+                },
+                "networkProfile": {
+                  "networkInterfaces": [
+                    {
+                      "id": "id"
+                    }
+                  ]
+                },
+                "diagnosticsProfile": {
+                  "bootDiagnostics": {
+                    "enabled": true,
+                    "storageUri": "storageUri"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-10-01",
+      "name": "WinServer",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[reference(subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('resourceGroupName')), '2021-04-01', 'full').location]"
+          },
+          "adminPassword": {
+            "value": "Test@123"
+          },
+          "adminUserName": {
+            "value": "TestAdmin"
+          },
+          "tags": {
+            "value": "[parameters('tags')]"
+          },
+          "computerName": {
+            "value": "winServer"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.14.46.61228",
+              "templateHash": "15751332596563157362"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "defaultValue": "[resourceGroup().location]"
+            },
+            "adminUserName": {
+              "type": "string"
+            },
+            "computerName": {
+              "type": "string"
+            },
+            "adminPassword": {
+              "type": "securestring"
+            },
+            "tags": {
+              "type": "object"
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Compute/virtualMachines",
+              "apiVersion": "2022-11-01",
+              "name": "name",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "hardwareProfile": {
+                  "vmSize": "Standard_A2_v2"
+                },
+                "osProfile": {
+                  "computerName": "[parameters('computerName')]",
+                  "adminUsername": "[parameters('adminUserName')]",
+                  "adminPassword": "[parameters('adminPassword')]"
+                },
+                "storageProfile": {
+                  "imageReference": {
+                    "publisher": "MicrosoftWindowsServer",
+                    "offer": "WindowsServer",
+                    "sku": "2012-R2-Datacenter",
+                    "version": "latest"
+                  },
+                  "osDisk": {
+                    "name": "name",
+                    "caching": "ReadWrite",
+                    "createOption": "FromImage"
+                  }
+                },
+                "networkProfile": {
+                  "networkInterfaces": [
+                    {
+                      "id": "id"
+                    }
+                  ]
+                },
+                "diagnosticsProfile": {
+                  "bootDiagnostics": {
+                    "enabled": true,
+                    "storageUri": "storageUri"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-10-01",
+      "name": "keyVaultDeploy",
+      "resourceGroup": "[parameters('resourceGroupName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[reference(subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('resourceGroupName')), '2021-04-01', 'full').location]"
+          },
+          "tags": {
+            "value": "[parameters('tags')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.14.46.61228",
+              "templateHash": "3070992377555891639"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "defaultValue": "[resourceGroup().location]"
+            },
+            "tags": {
+              "type": "object"
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.KeyVault/vaults",
+              "apiVersion": "2022-07-01",
+              "name": "name",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "enabledForDeployment": true,
+                "enabledForTemplateDeployment": true,
+                "enabledForDiskEncryption": true,
+                "tenantId": "tenantId",
+                "accessPolicies": [
+                  {
+                    "tenantId": "tenantId",
+                    "objectId": "objectId",
+                    "permissions": {
+                      "keys": [
+                        "get"
+                      ],
+                      "secrets": [
+                        "list",
+                        "get"
+                      ]
+                    }
+                  }
+                ],
+                "sku": {
+                  "name": "standard",
+                  "family": "A"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-10-01",
+      "name": "acrDeploy",
+      "resourceGroup": "[parameters('resourceGroupName')]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[reference(subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('resourceGroupName')), '2021-04-01', 'full').location]"
+          },
+          "tags": {
+            "value": "[parameters('tags')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.14.46.61228",
+              "templateHash": "651363598976518216"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "defaultValue": "[resourceGroup().location]"
+            },
+            "tags": {
+              "type": "object"
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.ContainerRegistry/registries",
+              "apiVersion": "2023-01-01-preview",
+              "name": "name",
+              "tags": "[parameters('tags')]",
+              "location": "[parameters('location')]",
+              "sku": {
+                "name": "Basic"
+              },
+              "properties": {
+                "adminUserEnabled": true
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-10-01",
+      "name": "postgreDeploy",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[reference(subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('resourceGroupName')), '2021-04-01', 'full').location]"
+          },
+          "administratorLogin": {
+            "value": "sa"
+          },
+          "administratorLoginPassword": {
+            "value": "testing@123"
+          },
+          "serverName": {
+            "value": "dbServer1"
+          },
+          "tags": {
+            "value": "[parameters('tags')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.14.46.61228",
+              "templateHash": "6754316726115416020"
+            }
+          },
+          "parameters": {
+            "tags": {
+              "type": "object"
+            },
+            "serverName": {
+              "type": "string",
+              "metadata": {
+                "description": "Server Name for Azure database for PostgreSQL"
+              }
+            },
+            "administratorLogin": {
+              "type": "string",
+              "minLength": 1,
+              "metadata": {
+                "description": "Database administrator login name"
+              }
+            },
+            "administratorLoginPassword": {
+              "type": "securestring",
+              "minLength": 8,
+              "metadata": {
+                "description": "Database administrator password"
+              }
+            },
+            "skuCapacity": {
+              "type": "int",
+              "defaultValue": 2,
+              "metadata": {
+                "description": "Azure database for PostgreSQL compute capacity in vCores (2,4,8,16,32)"
+              }
+            },
+            "skuName": {
+              "type": "string",
+              "defaultValue": "GP_Gen5_2",
+              "metadata": {
+                "description": "Azure database for PostgreSQL sku name "
+              }
+            },
+            "skuSizeMB": {
+              "type": "int",
+              "defaultValue": 51200,
+              "metadata": {
+                "description": "Azure database for PostgreSQL Sku Size "
+              }
+            },
+            "skuTier": {
+              "type": "string",
+              "defaultValue": "GeneralPurpose",
+              "allowedValues": [
+                "Basic",
+                "GeneralPurpose",
+                "MemoryOptimized"
+              ],
+              "metadata": {
+                "description": "Azure database for PostgreSQL pricing tier"
+              }
+            },
+            "skuFamily": {
+              "type": "string",
+              "defaultValue": "Gen5",
+              "metadata": {
+                "description": "Azure database for PostgreSQL sku family"
+              }
+            },
+            "postgresqlVersion": {
+              "type": "string",
+              "defaultValue": "11",
+              "allowedValues": [
+                "9.5",
+                "9.6",
+                "10",
+                "10.0",
+                "10.2",
+                "11"
+              ],
+              "metadata": {
+                "description": "PostgreSQL version"
+              }
+            },
+            "location": {
+              "type": "string",
+              "defaultValue": "[resourceGroup().location]",
+              "metadata": {
+                "description": "Location for all resources."
+              }
+            },
+            "backupRetentionDays": {
+              "type": "int",
+              "defaultValue": 7,
+              "metadata": {
+                "description": "PostgreSQL Server backup retention days"
+              }
+            },
+            "geoRedundantBackup": {
+              "type": "string",
+              "defaultValue": "Disabled",
+              "metadata": {
+                "description": "Geo-Redundant Backup setting"
+              }
+            },
+            "virtualNetworkName": {
+              "type": "string",
+              "defaultValue": "azure_postgresql_vnet",
+              "metadata": {
+                "description": "Virtual Network Name"
+              }
+            },
+            "subnetName": {
+              "type": "string",
+              "defaultValue": "azure_postgresql_subnet",
+              "metadata": {
+                "description": "Subnet Name"
+              }
+            },
+            "virtualNetworkRuleName": {
+              "type": "string",
+              "defaultValue": "AllowSubnet",
+              "metadata": {
+                "description": "Virtual Network RuleName"
+              }
+            },
+            "vnetAddressPrefix": {
+              "type": "string",
+              "defaultValue": "10.0.0.0/16",
+              "metadata": {
+                "description": "Virtual Network Address Prefix"
+              }
+            },
+            "subnetPrefix": {
+              "type": "string",
+              "defaultValue": "10.0.0.0/16",
+              "metadata": {
+                "description": "Subnet Address Prefix"
+              }
+            }
+          },
+          "variables": {
+            "firewallrules": [
+              {
+                "Name": "rule1",
+                "StartIpAddress": "0.0.0.0",
+                "EndIpAddress": "255.255.255.255"
+              },
+              {
+                "Name": "rule2",
+                "StartIpAddress": "0.0.0.0",
+                "EndIpAddress": "255.255.255.255"
+              }
+            ]
+          },
+          "resources": [
+            {
+              "type": "Microsoft.DBforPostgreSQL/servers/virtualNetworkRules",
+              "apiVersion": "2017-12-01",
+              "name": "[format('{0}/{1}', parameters('serverName'), parameters('virtualNetworkRuleName'))]",
+              "properties": {
+                "virtualNetworkSubnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), parameters('subnetName'))]",
+                "ignoreMissingVnetServiceEndpoint": true
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.DBforPostgreSQL/servers', parameters('serverName'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworkName'), parameters('subnetName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Network/virtualNetworks",
+              "apiVersion": "2021-05-01",
+              "name": "[parameters('virtualNetworkName')]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "addressSpace": {
+                  "addressPrefixes": [
+                    "[parameters('vnetAddressPrefix')]"
+                  ]
+                }
+              }
+            },
+            {
+              "type": "Microsoft.Network/virtualNetworks/subnets",
+              "apiVersion": "2021-05-01",
+              "name": "[format('{0}/{1}', parameters('virtualNetworkName'), parameters('subnetName'))]",
+              "properties": {
+                "addressPrefix": "[parameters('subnetPrefix')]"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.DBforPostgreSQL/servers",
+              "apiVersion": "2017-12-01",
+              "name": "[parameters('serverName')]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "sku": {
+                "name": "[parameters('skuName')]",
+                "tier": "[parameters('skuTier')]",
+                "capacity": "[parameters('skuCapacity')]",
+                "size": "[format('{0}', parameters('skuSizeMB'))]",
+                "family": "[parameters('skuFamily')]"
+              },
+              "properties": {
+                "createMode": "Default",
+                "version": "[parameters('postgresqlVersion')]",
+                "administratorLogin": "[parameters('administratorLogin')]",
+                "administratorLoginPassword": "[parameters('administratorLoginPassword')]",
+                "storageProfile": {
+                  "storageMB": "[parameters('skuSizeMB')]",
+                  "backupRetentionDays": "[parameters('backupRetentionDays')]",
+                  "geoRedundantBackup": "[parameters('geoRedundantBackup')]"
+                }
+              }
+            },
+            {
+              "copy": {
+                "name": "firewallRules",
+                "count": "[length(variables('firewallrules'))]",
+                "mode": "serial",
+                "batchSize": 1
+              },
+              "type": "Microsoft.DBforPostgreSQL/servers/firewallRules",
+              "apiVersion": "2017-12-01",
+              "name": "[format('{0}/{1}', parameters('serverName'), variables('firewallrules')[copyIndex()].Name)]",
+              "properties": {
+                "startIpAddress": "[variables('firewallrules')[copyIndex()].StartIpAddress]",
+                "endIpAddress": "[variables('firewallrules')[copyIndex()].EndIpAddress]"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.DBforPostgreSQL/servers', parameters('serverName'))]"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-10-01",
+      "name": "aksDeploy",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "adminUserName": {
+            "value": "sa"
+          },
+          "location": {
+            "value": "[reference(subscriptionResourceId('Microsoft.Resources/resourceGroups', parameters('resourceGroupName')), '2021-04-01', 'full').location]"
+          },
+          "tags": {
+            "value": "[parameters('tags')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.14.46.61228",
+              "templateHash": "7967588874784198316"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "defaultValue": "[resourceGroup().location]"
+            },
+            "adminUserName": {
+              "type": "string"
+            },
+            "tags": {
+              "type": "object"
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.ContainerService/managedClusters",
+              "apiVersion": "2021-03-01",
+              "name": "name",
+              "tags": "[parameters('tags')]",
+              "location": "[parameters('location')]",
+              "identity": {
+                "type": "SystemAssigned"
+              },
+              "properties": {
+                "kubernetesVersion": "1.19.7",
+                "dnsPrefix": "dnsprefix",
+                "enableRBAC": true,
+                "agentPoolProfiles": [
+                  {
+                    "name": "agentpool",
+                    "count": 3,
+                    "vmSize": "Standard_DS2_v2",
+                    "osType": "Linux",
+                    "mode": "System"
+                  }
+                ],
+                "linuxProfile": {
+                  "adminUsername": "[parameters('adminUserName')]",
+                  "ssh": {
+                    "publicKeys": [
+                      {
+                        "keyData": "REQUIRED"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

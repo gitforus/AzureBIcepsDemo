@@ -1,0 +1,24 @@
+parameters:
+  - name: environmentName
+    type: string
+  - name: locationCode
+    type: string
+
+# these pipeline variables are common to all environments
+variables:
+  - name: templateDirectory
+    value: "$(Build.SourcesDirectory)/.azuredevops/infrastructure"
+  # we import non-secret environment-specific vars
+  # secrets will be sourced either from ADO secret variables or KeyVault
+  - template: ./variables/${{ parameters.environmentName }}.vars.yaml
+
+stages:
+  - template: stages/bicep_build_stage.yaml
+    parameters:
+      environmentName: ${{ parameters.environmentName }}
+      locationCode: ${{ parameters.locationCode }}
+
+  # - template: stages/bicep_deploy_stage.yaml
+  #   parameters:
+  #     environmentName: ${{ parameters.environmentName }}
+  #     locationCode: ${{ parameters.locationCode }}

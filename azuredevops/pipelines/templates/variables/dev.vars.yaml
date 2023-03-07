@@ -1,0 +1,3 @@
+variables:
+  AzureRMServiceConnection: "AzureRM-dev"
+  bicepParamsFilePath: "$(Build.SourcesDirectory)/.azuredevops/infrastructure/params/dev.json"

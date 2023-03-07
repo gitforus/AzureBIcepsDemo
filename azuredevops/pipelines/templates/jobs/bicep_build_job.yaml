@@ -1,0 +1,23 @@
+parameters:
+  - name: environmentName
+    type: string
+  - name: locationCode
+    type: string
+jobs:
+  - job: build_${{ parameters.environmentName }}_${{ parameters.locationCode }}
+
+    steps:
+      - bash: lsb_release -a && bicep -v
+        displayName: "Echo build info"
+
+      - task: AzureCLI@2
+        displayName: "Build and lint bicep"
+        inputs:
+          azureSubscription: $(AzureRMServiceConnection)
+          scriptType: "pscore"
+          scriptLocation: "inlineScript"
+          inlineScript:
+            "az bicep build `
+            --file $(templateDirectory)/main.bicep"
+            # `
+            #--parameters $(bicepParamsFilePath)"

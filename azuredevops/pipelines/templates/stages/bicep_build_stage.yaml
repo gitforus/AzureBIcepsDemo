@@ -1,0 +1,22 @@
+parameters:
+  - name: environmentName
+    type: string
+  - name: locationCode
+    type: string
+
+stages:
+  - stage: build_${{ parameters.environmentName }}_${{ parameters.locationCode }}
+    displayName: Bicep Build (${{ parameters.environmentName }} - ${{ parameters.locationCode }})
+    dependsOn: []
+    jobs:
+      - template: ../jobs/bicep_build_job.yaml
+        parameters:
+          environmentName: ${{ parameters.environmentName }}
+          locationCode: ${{ parameters.locationCode }}
+
+      # - template: ../jobs/bicep_publish_job.yml
+
+      # - template: ../jobs/bicep_whatif_env_job.yml
+      #   parameters:
+      #     environmentName: ${{ environmentObject.environmentName }}
+      #     locationCode: ${{ locationCode }}
